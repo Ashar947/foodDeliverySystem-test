@@ -16,14 +16,6 @@ export enum RatingTypeEnum {
 
 @Table
 export class Rating extends Model<Rating> {
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    primaryKey: true,
-    autoIncrement: true,
-  })
-  id: number;
-
   @ForeignKey(() => User)
   @Column({
     type: DataType.INTEGER,

@@ -6,8 +6,9 @@ import { RatingModule } from './rating/rating.module';
 import { DatabaseModule } from '@app/common/database/database.module';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { Restaurant } from './resturant.entity';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
@@ -28,8 +29,28 @@ import * as Joi from 'joi';
         BROKER: Joi.string().required(),
         RESTAURANT_CONSUMER: Joi.string().required(),
         RESTAURANT_HTTP_PORT: Joi.number().required(),
+        AUTH_CLIENT: Joi.string().required(),
+        AUTH_CONSUMER: Joi.string().required(),
       }),
     }),
+    ClientsModule.registerAsync([
+      {
+        name: 'auth-service',
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.KAFKA,
+          options: {
+            client: {
+              clientId: configService.getOrThrow<string>('AUTH_CLIENT'),
+              brokers: [configService.getOrThrow<string>('BROKER')],
+            },
+            consumer: {
+              groupId: configService.getOrThrow<string>('AUTH_CONSUMER'),
+            },
+          },
+        }),
+        inject: [ConfigService],
+      },
+    ]),
   ],
   controllers: [RestaurantController],
   providers: [RestaurantService],

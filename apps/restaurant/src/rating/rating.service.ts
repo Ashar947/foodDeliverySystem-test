@@ -2,15 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { CreateRatingDto } from './dto/create-rating.dto';
 import { UpdateRatingDto } from './dto/update-rating.dto';
 import { Rating, RatingTypeEnum } from './entities/rating.entity';
+import { User } from '@app/common/entities/user.entity';
 
 @Injectable()
 export class RatingService {
-  async create(createRatingDto: CreateRatingDto) {
+  async create(createRatingDto: CreateRatingDto, user: User) {
     try {
       // add validation for foreign keys
       // update overall dish/restaurant rating
       const rating = await Rating.create({
         ...createRatingDto,
+        userId: user.id,
         ratingType: createRatingDto.orderId
           ? RatingTypeEnum.ORDER
           : RatingTypeEnum.DISH,

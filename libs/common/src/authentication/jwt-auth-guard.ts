@@ -6,14 +6,20 @@ import {
 } from '@nestjs/common';
 import { Observable, of } from 'rxjs';
 import { catchError, map, retry, tap } from 'rxjs/operators';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientKafka } from '@nestjs/microservices';
 import { User } from '../entities/user.entity';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
-    @Inject('auth-service') private readonly authClient: ClientProxy,
+    @Inject('auth-service') private readonly authClient: ClientKafka,
   ) {}
+
+  async onModuleInit() {
+    // Subscribe to the 'authenticate' response pattern
+    this.authClient.subscribeToResponseOf('authenticate');
+    await this.authClient.connect();
+  }
 
   canActivate(
     context: ExecutionContext,
@@ -21,11 +27,13 @@ export class JwtAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     console.log(request ? 'Request TRUE' : 'Request FALSE');
 
-    if (!request) {
-      console.log('request is false');
+    if (!request || !request.headers.authorization) {
+      console.log('Request is missing or Authorization header is missing');
       return false;
     }
-    console.log('authorization : ', request.headers.authorization);
+
+    console.log('authorization:', request.headers.authorization);
+
     return this.authClient
       .send<User>('authenticate', {
         headers: {
@@ -33,20 +41,19 @@ export class JwtAuthGuard implements CanActivate {
         },
       })
       .pipe(
-        retry(3),
+        retry(3), // Retry logic
         tap((res) => {
-          console.log(res);
-          context.switchToHttp().getRequest().user = res;
-          // request.user = res; // Store the authenticated user in the request
-          // this.authClient.emit('acknowledge', { acknowledged: true });
-
-          return true;
+          if (res) {
+            console.log('Authenticated User:', res);
+            request.user = res; // Attach authenticated user to request
+          } else {
+            console.log('Authentication failed - No response received');
+          }
         }),
-        map(() => true),
+        map((res) => !!res), // Map to boolean based on the response
         catchError((err) => {
-          console.log('error', err);
-          // this.authClient.emit('acknowledge', { acknowledged: false });
-          return of(false); // Return false in case of an error
+          console.log('Error during authentication', err);
+          return of(false); // Return false on error
         }),
       );
   }

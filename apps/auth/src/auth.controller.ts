@@ -22,12 +22,21 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @UseGuards(AuthGuard)
-  @EventPattern('authenticate')
+  @MessagePattern('authenticate')
   async authenticate(@Payload() req: UserRequest) {
     try {
-      return req.user;
-    } catch {
-      return null;
+      console.log('CONNECTION FOR AUTH');
+      console.log({ user: req.user.dataValues });
+      return req.user.dataValues;
+      // Ensure the data is correct and return it
+      if (req && req.user) {
+        return { success: true, user: req.user.dataValues };
+      } else {
+        return { success: false, message: 'User not found' };
+      }
+    } catch (error) {
+      console.error('Error in authentication:', error);
+      return { success: false, message: 'Authentication failed' };
     }
   }
 
