@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { RatingService } from './rating.service';
 import { CreateRatingDto } from './dto/create-rating.dto';
 import { UpdateRatingDto } from './dto/update-rating.dto';
@@ -8,8 +16,13 @@ export class RatingController {
   constructor(private readonly ratingService: RatingService) {}
 
   @Post()
-  create(@Body() createRatingDto: CreateRatingDto) {
-    return this.ratingService.create(createRatingDto);
+  async create(@Body() createRatingDto: CreateRatingDto) {
+    const { rating } = await this.ratingService.create(createRatingDto);
+    return {
+      data: { rating },
+      success: true,
+      message: 'Rating Created Successfully.',
+    };
   }
 
   @Get()

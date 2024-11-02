@@ -1,4 +1,4 @@
-import { User } from 'apps/auth/src/user/entity/user.entity';
+import { User } from '@app/common/entities/user.entity';
 import {
   Column,
   DataType,
@@ -57,4 +57,10 @@ export class Rating extends Model<Rating> {
     allowNull: false,
   })
   ratingType: RatingTypeEnum;
+
+  @Column({
+    type: DataType.DECIMAL(2, 1),
+    allowNull: false,
+  })
+  rating: number;
 }

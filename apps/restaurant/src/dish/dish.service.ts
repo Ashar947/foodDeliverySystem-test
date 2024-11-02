@@ -1,22 +1,43 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateDishDto } from './dto/create-dish.dto';
 import { UpdateDishDto } from './dto/update-dish.dto';
+import { Dish } from './entities/dish.entity';
 
 @Injectable()
 export class DishService {
-  create(createDishDto: CreateDishDto) {
-    return 'This action adds a new dish';
+  async create(createDishDto: CreateDishDto) {
+    try {
+      const dish = await Dish.create({
+        ...createDishDto,
+        discount: 0.0,
+        rating: 0.0,
+        isActive: true,
+        totalSold: 0,
+      });
+      return { dish };
+    } catch (error) {
+      throw error;
+    }
   }
 
   findAll() {
     return `This action returns all dish`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} dish`;
+  async findOne(id: number) {
+    try {
+      const dish = await Dish.findOne({ where: { id } });
+      if (!dish) {
+        throw new NotFoundException('Dish Not Found.');
+      }
+      return { dish };
+    } catch (error) {
+      throw error;
+    }
   }
 
   update(id: number, updateDishDto: UpdateDishDto) {
+    console.log(updateDishDto);
     return `This action updates a #${id} dish`;
   }
 

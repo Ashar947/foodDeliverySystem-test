@@ -6,7 +6,7 @@ import {
   Model,
   Table,
 } from 'sequelize-typescript';
-import { User } from './user.entity';
+import { User } from '../../../../../libs/common/src/entities/user.entity';
 
 @Table
 export class UserToken extends Model<UserToken> {

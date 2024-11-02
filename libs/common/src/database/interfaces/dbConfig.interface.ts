@@ -1,4 +1,4 @@
-import { User } from 'apps/auth/src/user/entity/user.entity';
+import { User } from '@app/common/entities/user.entity';
 import { Request as ExpressRequest } from 'express';
 
 export interface IDatabaseConfigAttributes {

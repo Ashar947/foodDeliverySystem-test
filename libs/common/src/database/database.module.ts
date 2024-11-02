@@ -1,5 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
+import { User } from '../entities/user.entity';
 
 @Global()
 @Module({
@@ -14,6 +15,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
         database: 'food-delivery-system',
         synchronize: true,
         autoLoadModels: true,
+        models: [User],
       }),
     }),
   ],

@@ -19,6 +19,17 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
   const jwtService = app.get(JwtService);
   const userService = app.get(UserService);
+  app.connectMicroservice({
+    transport: Transport.KAFKA,
+    options: {
+      client: {
+        brokers: [configService.get('BROKER')], //['localhost:9092'], // TODO: ADD IN ENV
+      },
+      consumer: {
+        groupId: configService.get('AUTH_CONSUMER'), // ${configService.get('AUTH_HTTP_PORT')}
+      },
+    },
+  });
   app.enableCors({
     origin: '*',
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
@@ -37,16 +48,5 @@ async function bootstrap() {
   console.log(
     `Auth Service Running On Port HTTP : ${configService.get('AUTH_HTTP_PORT')}`,
   );
-  app.connectMicroservice({
-    transport: Transport.KAFKA,
-    options: {
-      client: {
-        brokers: [configService.get('BROKER')], //['localhost:9092'], // TODO: ADD IN ENV
-      },
-      consumer: {
-        groupId: configService.get('AUTH_CONSUMER'), // ${configService.get('AUTH_HTTP_PORT')}
-      },
-    },
-  });
 }
 bootstrap();
