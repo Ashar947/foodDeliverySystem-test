@@ -8,11 +8,11 @@ export class NotificationsController {
 
   @EventPattern('update-order-status')
   updateOrderStatus(data: any) {
-    this.notificationsService.handleOrderStatus(data.value);
+    this.notificationsService.handleOrderStatus(data);
   }
 
   @EventPattern('order-creation')
   orderCreation(data: any) {
-    this.notificationsService.orderCreation(data.value);
+    this.notificationsService.orderCreation(data);
   }
 }

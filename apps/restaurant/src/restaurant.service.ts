@@ -79,6 +79,7 @@ export class RestaurantService {
       const dish = await Restaurant.findOne({
         where: { id: data.restaurantId },
       });
+      console.log(dish)
       return dish ? dish : null;
     } catch {
       return null;

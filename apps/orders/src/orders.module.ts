@@ -9,6 +9,8 @@ import { DeliveryModule } from './delivery/delivery.module';
 import { SubOrdersModule } from './sub-orders/sub-orders.module';
 import { Order } from './order.entity';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from '@app/common/authentication/jwt-auth-guard';
 
 @Module({
   imports: [
@@ -78,6 +80,6 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     SubOrdersModule,
   ],
   controllers: [OrdersController],
-  providers: [OrdersService],
+  providers: [OrdersService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
 })
 export class OrdersModule {}

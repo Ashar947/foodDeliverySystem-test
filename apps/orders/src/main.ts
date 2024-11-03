@@ -17,7 +17,7 @@ async function bootstrap() {
     options: {
       client: {
         clientId: configService.get('ORDER_CLIENT'),
-        brokers: [configService.get('BROKER')], //['localhost:9092'], // TODO: ADD IN ENV
+        brokers: ['kafka:29092'], //['host.docker.internal:9092'], // TODO: ADD IN ENV
       },
       consumer: {
         groupId: configService.get('ORDER_CONSUMER'), // ${configService.get('AUTH_HTTP_PORT')}

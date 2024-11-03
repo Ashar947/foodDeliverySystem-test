@@ -31,6 +31,7 @@ export class AuthController {
 
   @EventPattern('create-user')
   async createUserEvent(createUserDto: CreateUserDto) {
+    console.log('CREATE USER CALLED');
     await this.authService.createUser(createUserDto);
     return;
   }

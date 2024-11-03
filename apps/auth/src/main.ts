@@ -24,10 +24,13 @@ async function bootstrap() {
     options: {
       client: {
         clientId: 'auth-client',
-        brokers: [configService.get('BROKER')], //['localhost:9092'], // TODO: ADD IN ENV
+        brokers: ['kafka:29092'],
       },
       consumer: {
         groupId: configService.get('AUTH_CONSUMER'), // ${configService.get('AUTH_HTTP_PORT')}
+      },
+      subscribe: {
+        topics: ['authenticate.reply', 'authenticate'],
       },
     },
   });

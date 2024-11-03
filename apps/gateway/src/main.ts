@@ -83,6 +83,6 @@ async function bootstrap() {
   );
   const port = configService.get('GATEWAY_HTTP_PORT');
   await app.listen(port);
-  console.log(`Gateway Running At http://localhost:${port}/api/v1`);
+  console.log(`Gateway Running At http://host.docker.internal:${port}/api/v1`);
 }
 bootstrap();

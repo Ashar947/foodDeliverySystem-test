@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   Inject,
   Injectable,
+  OnModuleInit,
 } from '@nestjs/common';
 import { Observable, of } from 'rxjs';
 import { catchError, map, retry, tap } from 'rxjs/operators';
@@ -10,14 +11,20 @@ import { ClientKafka } from '@nestjs/microservices';
 import { User } from '../entities/user.entity';
 
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
+export class JwtAuthGuard implements CanActivate, OnModuleInit {
   constructor(
     @Inject('auth-service') private readonly authClient: ClientKafka,
   ) {}
 
   async onModuleInit() {
-    this.authClient.subscribeToResponseOf('authenticate');
-    await this.authClient.connect();
+    try {
+      await this.authClient.connect();
+      console.log('Connected to Auth');
+      this.authClient.subscribeToResponseOf('authenticate');
+      this.authClient.subscribeToResponseOf('authenticate.reply');
+    } catch (error) {
+      console.error('Failed to connect to Auth:', error);
+    }
   }
 
   canActivate(
@@ -25,7 +32,7 @@ export class JwtAuthGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
     console.log(request ? 'Request TRUE' : 'Request FALSE');
-
+    this.onModuleInit();
     if (!request || !request.headers.authorization) {
       console.log('Request is missing or Authorization header is missing');
       return false;

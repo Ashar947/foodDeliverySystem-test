@@ -8,7 +8,7 @@ import { User } from '../entities/user.entity';
     SequelizeModule.forRootAsync({
       useFactory: () => ({
         dialect: 'mysql',
-        host: 'localhost',
+        host: 'host.docker.internal',
         port: 3306,
         username: 'root',
         password: 'root',

@@ -19,7 +19,7 @@ async function bootstrap() {
     options: {
       client: {
         clientId: 'notification-client',
-        brokers: [configService.get('BROKER')],
+        brokers: ["kafka:29092"],
       },
       consumer: {
         groupId: configService.get('NOTIFICATION_CONSUMER'),

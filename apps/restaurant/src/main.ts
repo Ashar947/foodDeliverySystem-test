@@ -19,7 +19,7 @@ async function bootstrap() {
     options: {
       client: {
         clientId: 'restaurant-client',
-        brokers: [configService.get('BROKER')],
+        brokers: ["kafka:29092"],
       },
       consumer: {
         groupId: configService.get('RESTAURANT_CONSUMER'),

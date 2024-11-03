@@ -1,4 +1,9 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  OnModuleInit,
+} from '@nestjs/common';
 import { CreateOrderDto } from './dto/order.dto';
 import { User } from '@app/common/entities/user.entity';
 import { UserTypesEnum } from '@app/common/constants/roleTypes.enum';
@@ -19,10 +24,17 @@ export class OrdersService implements OnModuleInit {
 
     @Inject('restaurant-service')
     private readonly restaurantService: ClientKafka,
+
+    @Inject('auth-service')
+    private readonly authService: ClientKafka,
   ) {}
   async onModuleInit() {
     this.restaurantService.subscribeToResponseOf('validate-dish');
     this.restaurantService.subscribeToResponseOf('validate-restaurant');
+    this.authService.subscribeToResponseOf('authenticate');
+    this.authService.subscribeToResponseOf('authenticate.reply');
+    await this.authService.connect();
+    console.log('Connected to Auth');
     await this.restaurantService.connect();
   }
 
@@ -40,7 +52,9 @@ export class OrdersService implements OnModuleInit {
       const restaurantCheck = await this.restaurantService
         .send('validate-restaurant', new ValidateRestaurantEvent(restaurantId))
         .toPromise();
-      console.log({ restaurantCheck });
+      if (!restaurantCheck) {
+        throw new BadRequestException('Invalid Restaurant.');
+      }
       const order = await Order.create({
         orderNotes,
         userId: user.id,
@@ -49,11 +63,12 @@ export class OrdersService implements OnModuleInit {
       let totalOrderAmount = 0.0;
       const orderId = order.id;
       for (const subOrder of subOrders) {
-        // TODO validate dishId
         const dishValidation = await this.restaurantService
           .send('validate-dish', new ValidateDish(subOrder.dishId))
           .toPromise();
-        console.log({ dishValidation });
+        if (!dishValidation) {
+          throw new BadRequestException('Invalid Dish.');
+        }
         const totalPrice = subOrder.quantity * 10;
         await SubOrder.create({
           orderId,
@@ -73,7 +88,7 @@ export class OrdersService implements OnModuleInit {
       order.totalOrderAmount = totalOrderAmount;
       await order.save();
       await order.reload({
-        include: [{ association: 'subOrders' }, { association: 'user' }],
+        include: [{ association: 'subOrders' }],
       });
       this.notificationService.emit(
         'order-creation',
@@ -86,6 +101,9 @@ export class OrdersService implements OnModuleInit {
           totalOrderAmount,
         ),
       );
+      this.notificationService.emit('update-order-status', {
+        status: order.status,
+      });
       return {
         success: true,
         message: 'Order Created Successfully.',
