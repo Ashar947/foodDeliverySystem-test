@@ -10,13 +10,13 @@ import { UserRequest } from '@app/common/database/interfaces/dbConfig.interface'
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  // @UseGuards(JwtAuthGuard)
-  // @Roles(UserTypesEnum.USER)
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserTypesEnum.CUSTOMER)
   @Post()
   async create(
     @Body() createOrderDto: CreateOrderDto,
-    // @Request() req: UserRequest,
+    @Request() req: UserRequest,
   ) {
-    return await this.ordersService.create(createOrderDto);
+    return await this.ordersService.create(createOrderDto, req.user);
   }
 }

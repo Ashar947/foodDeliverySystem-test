@@ -1,15 +1,38 @@
-import { IsArray, IsNotEmpty, IsNumber } from 'class-validator';
+import {
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateSubOrderDto {
   @IsNotEmpty()
-  @IsNumber()
-  catalogId: number;
+  @IsInt()
+  dishId: number;
+
   @IsNotEmpty()
-  @IsNumber()
+  @IsString()
+  dishNote: string;
+
+  @IsNotEmpty()
+  @IsInt()
   quantity: number;
 }
 
 export class CreateOrderDto {
+  @IsNotEmpty()
+  @IsString()
+  deliveryAddress: string;
+
+  @IsNotEmpty()
+  @IsInt()
+  restaurantId: number;
+
+  @IsOptional()
+  @IsString()
+  orderNotes: string;
+
   @IsNotEmpty()
   @IsArray()
   subOrders: CreateSubOrderDto[];

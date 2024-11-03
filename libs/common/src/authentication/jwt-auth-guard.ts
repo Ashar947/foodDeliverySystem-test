@@ -16,7 +16,6 @@ export class JwtAuthGuard implements CanActivate {
   ) {}
 
   async onModuleInit() {
-    // Subscribe to the 'authenticate' response pattern
     this.authClient.subscribeToResponseOf('authenticate');
     await this.authClient.connect();
   }

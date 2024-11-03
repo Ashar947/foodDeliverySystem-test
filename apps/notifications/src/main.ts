@@ -1,30 +1,32 @@
 import { NestFactory } from '@nestjs/core';
-import { OrdersModule } from './orders.module';
 import { ConfigService } from '@nestjs/config';
-import { Transport } from '@nestjs/microservices';
 import {
   HttpExceptionFilter,
   validationExceptionFactory,
 } from '@app/common/exceptions';
+import { Transport } from '@nestjs/microservices';
 import { ValidationPipe } from '@nestjs/common';
+import { NotificationsModule } from './notifications.module';
 
 async function bootstrap() {
-  console.log('Order Service Started ..');
-  const app = await NestFactory.create(OrdersModule);
+  const app = await NestFactory.create(NotificationsModule);
   const configService = app.get(ConfigService);
+
+  app.useGlobalFilters(new HttpExceptionFilter());
+
   app.connectMicroservice({
     transport: Transport.KAFKA,
     options: {
       client: {
-        clientId: configService.get('ORDER_CLIENT'),
-        brokers: [configService.get('BROKER')], //['localhost:9092'], // TODO: ADD IN ENV
+        clientId: 'notification-client',
+        brokers: [configService.get('BROKER')],
       },
       consumer: {
-        groupId: configService.get('ORDER_CONSUMER'), // ${configService.get('AUTH_HTTP_PORT')}
+        groupId: configService.get('NOTIFICATION_CONSUMER'),
       },
     },
   });
-  app.useGlobalFilters(new HttpExceptionFilter());
+
   app.enableCors({
     origin: '*',
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
@@ -38,9 +40,9 @@ async function bootstrap() {
   );
   app.setGlobalPrefix('api/v1');
   await app.startAllMicroservices();
-  await app.listen(configService.get('ORDER_HTTP_PORT'));
+  await app.listen(configService.get('NOTIFICATION_HTTP_PORT'));
   console.log(
-    `Order App Running At  http: ${configService.get('ORDER_HTTP_PORT')}`,
+    `Notification Service Running On Port HTTP : ${configService.get('NOTIFICATION_HTTP_PORT')}`,
   );
 }
 bootstrap();

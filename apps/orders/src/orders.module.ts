@@ -5,57 +5,77 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { DatabaseModule } from '@app/common/database/database.module';
+import { DeliveryModule } from './delivery/delivery.module';
+import { SubOrdersModule } from './sub-orders/sub-orders.module';
+import { Order } from './order.entity';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
     DatabaseModule,
-    SequelizeModule.forFeature([]),
+    SequelizeModule.forFeature([Order]),
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
-        AUTH_HTTP_PORT: Joi.number().required(),
-        AUTH_TCP_PORT: Joi.number().required(),
-        CATALOG_HTTP_PORT: Joi.number().required(),
-        CATALOG_TCP_PORT: Joi.number().required(),
-        GATEWAY_HTTP_PORT: Joi.number().required(),
         ORDER_HTTP_PORT: Joi.number().required(),
-        ORDER_TCP_PORT: Joi.number().required(),
-        RABBITMQ_URL: Joi.string().required(),
+        ORDER_CLIENT: Joi.string().required(),
+        ORDER_CONSUMER: Joi.string().required(),
       }),
     }),
     ClientsModule.registerAsync([
       {
-        name: 'catalog-service',
+        name: 'auth-service',
         useFactory: (configService: ConfigService) => ({
-          transport: Transport.RMQ,
+          transport: Transport.KAFKA,
           options: {
-            urls: [configService.getOrThrow<string>('RABBITMQ_URL')],
-            queue: 'catalog-queue',
-            noAck: true,
-            queueOptions: {
-              durable: true,
+            client: {
+              clientId: 'auth-client',
+              brokers: [configService.getOrThrow<string>('BROKER')],
+            },
+            consumer: {
+              groupId: configService.getOrThrow<string>('AUTH_CONSUMER'),
             },
           },
         }),
         inject: [ConfigService],
       },
       {
-        name: 'auth-service',
+        name: 'restaurant-service',
         useFactory: (configService: ConfigService) => ({
-          transport: Transport.RMQ,
+          transport: Transport.KAFKA,
           options: {
-            urls: [configService.getOrThrow<string>('RABBITMQ_URL')],
-            queue: 'auth-queue',
-            noAck: true,
-            queueOptions: {
-              durable: true,
+            client: {
+              clientId: 'restaurant-client',
+              brokers: [configService.getOrThrow<string>('BROKER')],
+            },
+            consumer: {
+              groupId: configService.getOrThrow<string>('RESTAURANT_CONSUMER'),
+            },
+          },
+        }),
+        inject: [ConfigService],
+      },
+      {
+        name: 'notification-service',
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.KAFKA,
+          options: {
+            client: {
+              clientId: 'notification-client',
+              brokers: [configService.getOrThrow<string>('BROKER')],
+            },
+            consumer: {
+              groupId: configService.getOrThrow<string>(
+                'NOTIFICATION_CONSUMER',
+              ),
             },
           },
         }),
         inject: [ConfigService],
       },
     ]),
+    DeliveryModule,
+    SubOrdersModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService],

@@ -1,34 +1,26 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { RestaurantService } from './restaurant.service';
 import { CreateRestaurantDto } from './dto/createRestaurant.dto';
 import { Public } from '@app/common/decorator/public.decorator';
-import { JwtAuthGuard } from '@app/common/authentication/jwt-auth-guard';
-import { Roles } from '@app/common/constants/role.constants';
-import { UserTypesEnum } from '@app/common/constants/roleTypes.enum';
-import { UserRequest } from '@app/common/database/interfaces/dbConfig.interface';
+import { MessagePattern } from '@nestjs/microservices';
 
 @Controller('restaurant')
 export class RestaurantController {
   constructor(private readonly restaurantService: RestaurantService) {}
 
+  @MessagePattern('validate-dish')
+  async validateDish(data: any) {
+    return await this.restaurantService.validateDish(data.value);
+  }
+
+  @MessagePattern('validate-restaurant')
+  async validateRestaurant(data: any) {
+    return await this.restaurantService.validateRestaurant(data);
+  }
+
   @Public()
-  // @UseGuards(JwtAuthGuard)
-  // @Roles(UserTypesEnum.CUSTOMER)
   @Post()
-  async create(
-    @Body() createRestaurantDto: CreateRestaurantDto,
-    // @Request() req: UserRequest,
-  ) {
-    // const user = req.user;
-    // console.log({ user });
+  async create(@Body() createRestaurantDto: CreateRestaurantDto) {
     const { restaurant } =
       await this.restaurantService.create(createRestaurantDto);
     return {

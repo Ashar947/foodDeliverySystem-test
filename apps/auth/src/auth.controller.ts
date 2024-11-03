@@ -5,12 +5,7 @@ import { Public } from '@app/common/decorator/public.decorator';
 import { CreateUserDto } from './user/dto/createUser.dto';
 import { LogoutUserDto } from './user/dto/logoutUser.dto';
 import { AuthGuard } from '../guards/auth.guard';
-import {
-  Ctx,
-  EventPattern,
-  MessagePattern,
-  Payload,
-} from '@nestjs/microservices';
+import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import { UserRequest } from '@app/common/database/interfaces/dbConfig.interface';
 // import { AuthGuard } from 'apps/auth/guards/auth.guard';
 // import { Roles } from '@app/common/constants/role.constants';
@@ -28,16 +23,16 @@ export class AuthController {
       console.log('CONNECTION FOR AUTH');
       console.log({ user: req.user.dataValues });
       return req.user.dataValues;
-      // Ensure the data is correct and return it
-      if (req && req.user) {
-        return { success: true, user: req.user.dataValues };
-      } else {
-        return { success: false, message: 'User not found' };
-      }
     } catch (error) {
       console.error('Error in authentication:', error);
-      return { success: false, message: 'Authentication failed' };
+      return null;
     }
+  }
+
+  @EventPattern('create-user')
+  async createUserEvent(createUserDto: CreateUserDto) {
+    await this.authService.createUser(createUserDto);
+    return;
   }
 
   @Public()

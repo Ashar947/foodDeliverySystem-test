@@ -24,7 +24,6 @@ async function bootstrap() {
     options: {
       client: {
         clientId: 'auth-client',
-
         brokers: [configService.get('BROKER')], //['localhost:9092'], // TODO: ADD IN ENV
       },
       consumer: {

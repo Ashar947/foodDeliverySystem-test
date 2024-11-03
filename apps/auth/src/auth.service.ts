@@ -99,12 +99,7 @@ export class AuthService {
         data: { user, accessToken, refreshToken },
       };
     } catch (error) {
-      if (error) {
-        console.log({ error });
-        throw error;
-      } else {
-        throw new BadRequestException('error');
-      }
+      throw error;
     }
   }
   async logOutUser({ accessToken = null }: LogoutUserDto) {
