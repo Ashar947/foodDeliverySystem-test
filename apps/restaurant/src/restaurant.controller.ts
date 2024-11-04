@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { RestaurantService } from './restaurant.service';
 import { CreateRestaurantDto } from './dto/createRestaurant.dto';
 import { Public } from '@app/common/decorator/public.decorator';
-import { MessagePattern } from '@nestjs/microservices';
+import { EventPattern, MessagePattern } from '@nestjs/microservices';
 
 @Controller('restaurant')
 export class RestaurantController {
@@ -11,6 +11,16 @@ export class RestaurantController {
   @MessagePattern('validate-dish')
   async validateDish(data: any) {
     return await this.restaurantService.validateDish(data.value);
+  }
+
+  @EventPattern('update-dish-sales')
+  updateDishSales(data: any) {
+    this.restaurantService.updateDishSales(data);
+  }
+
+  @EventPattern('update-restaurant-sales')
+  updateRestaurantSales(data: any) {
+    this.restaurantService.updateRestaurant(data);
   }
 
   @MessagePattern('validate-restaurant')

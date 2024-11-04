@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import {
   DishAvailabilityStatusEnum,
   DishCategoryEnum,
@@ -18,7 +18,7 @@ export class CreateDishDto {
   category: DishCategoryEnum;
 
   @IsNotEmpty()
-  @IsString()
+  @IsNumber()
   price: number;
 
   @IsNotEmpty()

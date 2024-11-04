@@ -1,19 +1,19 @@
-import { IsInt, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateRatingDto {
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   orderId: number;
 
   @IsNotEmpty() // IsNotEmpty
-  @IsInt()
+  @IsNumber()
   restaurantId: number;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   dishId: number;
 
   @IsNotEmpty()
-  @IsInt()
+  @IsNumber()
   rating: number;
 }

@@ -15,6 +15,7 @@ import { ClientKafka } from '@nestjs/microservices';
 import { OrderCreatedEvent } from './dto/event/create-order.event';
 import { ValidateDish } from './dto/event/validate-dish.event';
 import { ValidateRestaurantEvent } from './dto/event/validate-restaurant.event';
+import { Dish } from 'apps/restaurant/src/dish/entities/dish.entity';
 
 @Injectable()
 export class OrdersService implements OnModuleInit {
@@ -31,11 +32,14 @@ export class OrdersService implements OnModuleInit {
   async onModuleInit() {
     this.restaurantService.subscribeToResponseOf('validate-dish');
     this.restaurantService.subscribeToResponseOf('validate-restaurant');
-    this.authService.subscribeToResponseOf('authenticate');
-    this.authService.subscribeToResponseOf('authenticate.reply');
-    await this.authService.connect();
-    console.log('Connected to Auth');
     await this.restaurantService.connect();
+  }
+  private generateTimeFunction(totalMinutes: number): string {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    const seconds = 0;
+    const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    return formattedTime;
   }
 
   async create(
@@ -48,10 +52,12 @@ export class OrdersService implements OnModuleInit {
     user: User,
   ) {
     try {
+      // let preparationTime: number = 0;
       // TODO : validate restaurantId
       const restaurantCheck = await this.restaurantService
         .send('validate-restaurant', new ValidateRestaurantEvent(restaurantId))
         .toPromise();
+      console.log({ restaurantCheck });
       if (!restaurantCheck) {
         throw new BadRequestException('Invalid Restaurant.');
       }
@@ -63,12 +69,14 @@ export class OrdersService implements OnModuleInit {
       let totalOrderAmount = 0.0;
       const orderId = order.id;
       for (const subOrder of subOrders) {
-        const dishValidation = await this.restaurantService
+        const dishValidation: Dish = await this.restaurantService
           .send('validate-dish', new ValidateDish(subOrder.dishId))
           .toPromise();
+        console.log({ dishValidation });
         if (!dishValidation) {
           throw new BadRequestException('Invalid Dish.');
         }
+        // preparationTime += dishValidation.preparationTime;
         const totalPrice = subOrder.quantity * 10;
         await SubOrder.create({
           orderId,
@@ -83,6 +91,7 @@ export class OrdersService implements OnModuleInit {
         customerId: user.id,
         riderId: 2,
         deliveryAddress,
+        // estimatedDeliveryTime :  generateTimeFunction(preparationTime)
       });
       // create notification event
       order.totalOrderAmount = totalOrderAmount;
@@ -90,6 +99,7 @@ export class OrdersService implements OnModuleInit {
       await order.reload({
         include: [{ association: 'subOrders' }],
       });
+      // add user notification for estimated time
       this.notificationService.emit(
         'order-creation',
         new OrderCreatedEvent(

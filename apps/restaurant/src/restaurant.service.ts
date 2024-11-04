@@ -69,20 +69,36 @@ export class RestaurantService {
   async validateDish(data: any) {
     try {
       const dish = await Dish.findOne({ where: { id: data.dishId } });
-      return dish ? dish : null;
+      console.log({ dish });
+      return dish;
     } catch {
       return null;
     }
   }
   async validateRestaurant(data: any) {
     try {
-      const dish = await Restaurant.findOne({
+      const restaurant = await Restaurant.findOne({
         where: { id: data.restaurantId },
       });
-      console.log(dish)
-      return dish ? dish : null;
+      console.log({ restaurant });
+      return restaurant;
     } catch {
       return null;
+    }
+  }
+
+  async updateDishSales({ id, quantity }: { id: number; quantity: number }) {
+    const dish = await this.validateDish(id);
+    if (dish) {
+      dish.totalSold += quantity;
+      await dish.save();
+    }
+  }
+  async updateRestaurant({ id }: { id: number }) {
+    const restaurant = await this.validateRestaurant(id);
+    if (restaurant) {
+      restaurant.totalOrders += 1;
+      await restaurant.save();
     }
   }
 }

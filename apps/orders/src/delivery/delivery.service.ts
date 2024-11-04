@@ -1,26 +1,63 @@
-import { Injectable } from '@nestjs/common';
-import { CreateDeliveryDto } from './dto/create-delivery.dto';
-import { UpdateDeliveryDto } from './dto/update-delivery.dto';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Order, OrderStatusEnum } from '../order.entity';
+import { Delivery } from './entities/delivery.entity';
+import { ClientKafka } from '@nestjs/microservices';
+import { SubOrder } from '../sub-orders/entities/sub-order.entity';
 
 @Injectable()
 export class DeliveryService {
-  create(createDeliveryDto: CreateDeliveryDto) {
-    return 'This action adds a new delivery';
-  }
+  constructor(
+    @Inject('notification-service')
+    private readonly notificationService: ClientKafka,
 
-  findAll() {
-    return `This action returns all delivery`;
-  }
+    @Inject('restaurant-service')
+    private readonly restaurantService: ClientKafka,
+  ) {}
+  async completeRide(id: number) {
+    const delivery = await Delivery.findOne({
+      where: { id },
+    });
+    if (!delivery) {
+      throw new NotFoundException('Invalid Delivery .');
+    }
+    const currentTime = new Date();
+    const deliveryCreatedTime = delivery.createdAt;
+    const timeDifference =
+      currentTime.getTime() - deliveryCreatedTime.getTime();
+    const hours = Math.floor(timeDifference / (1000 * 60 * 60));
+    const minutes = Math.floor(
+      (timeDifference % (1000 * 60 * 60)) / (1000 * 60),
+    );
+    const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+    const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    delivery.realDeliveryTime = formattedTime;
 
-  findOne(id: number) {
-    return `This action returns a #${id} delivery`;
-  }
+    // update order status and call notification service
+    const order = await Order.findOne({
+      where: { id: delivery.orderId },
+    });
+    order.status = OrderStatusEnum.DELIVERED;
+    await order.save();
+    this.notificationService.emit('update-order-status', {
+      status: OrderStatusEnum.DELIVERED,
+    });
 
-  update(id: number, updateDeliveryDto: UpdateDeliveryDto) {
-    return `This action updates a #${id} delivery`;
-  }
+    const subOrders = await SubOrder.findAll({
+      where: {
+        orderId: delivery.orderId,
+      },
+    });
 
-  remove(id: number) {
-    return `This action removes a #${id} delivery`;
+    for (const subOrder of subOrders) {
+      // update dish sales
+      this.restaurantService.emit('update-dish-sales', {
+        id: subOrder.dishId,
+        quantity: subOrder.quantity,
+      });
+    }
+    // update total orders for restaurant
+    this.restaurantService.emit('update-restaurant-sales', {
+      id: order.restaurantId,
+    });
   }
 }

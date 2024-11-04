@@ -81,6 +81,13 @@ export class Dish extends Model<Dish> {
   })
   totalSold: number;
 
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 0,
+    allowNull: true,
+  })
+  preparationTime: number; // minutes
+
   // Define associations if needed
   @BelongsTo(() => Restaurant) // Example association, modify as needed
   restaurant: Restaurant;
