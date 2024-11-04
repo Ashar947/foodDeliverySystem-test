@@ -8,8 +8,8 @@ import {
   validationExceptionFactory,
 } from '@app/common/exceptions';
 import { UserService } from './user/user.service';
-import { AuthGuard } from '../guards/auth.guard';
 import { ConfigService } from '@nestjs/config';
+import { AuthGuard } from '@app/common/authentication/auth.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create(AuthModule);
@@ -18,7 +18,6 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   const reflector = app.get(Reflector);
   const jwtService = app.get(JwtService);
-  const userService = app.get(UserService);
   app.connectMicroservice({
     transport: Transport.KAFKA,
     options: {
@@ -46,7 +45,7 @@ async function bootstrap() {
     }),
   );
   app.setGlobalPrefix('api/v1');
-  app.useGlobalGuards(new AuthGuard(jwtService, userService, reflector));
+  app.useGlobalGuards(new AuthGuard(jwtService, reflector));
   await app.startAllMicroservices();
   await app.listen(configService.get('AUTH_HTTP_PORT'));
   console.log(

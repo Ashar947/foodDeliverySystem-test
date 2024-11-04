@@ -22,6 +22,9 @@ async function bootstrap() {
       consumer: {
         groupId: configService.get('ORDER_CONSUMER'), // ${configService.get('AUTH_HTTP_PORT')}
       },
+      subscribe: {
+        topics: ['authenticate.reply', 'authenticate'],
+      },
     },
   });
   app.useGlobalFilters(new HttpExceptionFilter());

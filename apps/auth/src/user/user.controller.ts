@@ -9,11 +9,11 @@ import {
   Patch,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { AuthGuard } from 'apps/auth/guards/auth.guard';
 import { Roles } from '@app/common/constants/role.constants';
 import { UserTypesEnum } from '@app/common/constants/roleTypes.enum';
 import { UserRequest } from '@app/common/database/interfaces/dbConfig.interface';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { AuthGuard } from '@app/common/authentication/auth.guard';
 
 @Controller('user')
 export class UserController {

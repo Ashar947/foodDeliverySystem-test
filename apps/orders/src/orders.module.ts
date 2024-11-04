@@ -9,11 +9,11 @@ import { DeliveryModule } from './delivery/delivery.module';
 import { SubOrdersModule } from './sub-orders/sub-orders.module';
 import { Order } from './order.entity';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from '@app/common/authentication/jwt-auth-guard';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
+    JwtModule,
     DatabaseModule,
     SequelizeModule.forFeature([Order]),
     ConfigModule.forRoot({
@@ -80,6 +80,6 @@ import { JwtAuthGuard } from '@app/common/authentication/jwt-auth-guard';
     SubOrdersModule,
   ],
   controllers: [OrdersController],
-  providers: [OrdersService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
+  providers: [OrdersService],
 })
 export class OrdersModule {}

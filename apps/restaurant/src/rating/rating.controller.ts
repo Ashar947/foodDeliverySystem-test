@@ -12,16 +12,16 @@ import {
 import { RatingService } from './rating.service';
 import { CreateRatingDto } from './dto/create-rating.dto';
 import { UpdateRatingDto } from './dto/update-rating.dto';
-import { JwtAuthGuard } from '@app/common/authentication/jwt-auth-guard';
 import { UserTypesEnum } from '@app/common/constants/roleTypes.enum';
 import { Roles } from '@app/common/constants/role.constants';
 import { UserRequest } from '@app/common/database/interfaces/dbConfig.interface';
+import { AuthGuard } from '@app/common/authentication/auth.guard';
 
 @Controller('rating')
 export class RatingController {
   constructor(private readonly ratingService: RatingService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard)
   @Roles(UserTypesEnum.RESTAURANT_ADMIN)
   @Post()
   async create(

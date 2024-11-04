@@ -9,9 +9,11 @@ import { Restaurant } from './resturant.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
+    JwtModule,
     DishModule,
     RatingModule,
     DatabaseModule,

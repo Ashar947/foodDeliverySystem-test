@@ -6,9 +6,11 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { Dish } from './entities/dish.entity';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
+    JwtModule,
     DatabaseModule,
     SequelizeModule.forFeature([Dish]),
     ClientsModule.registerAsync([

@@ -11,7 +11,7 @@ import {
 import { DishService } from './dish.service';
 import { CreateDishDto } from './dto/create-dish.dto';
 import { UpdateDishDto } from './dto/update-dish.dto';
-import { JwtAuthGuard } from '@app/common/authentication/jwt-auth-guard';
+import { AuthGuard } from '@app/common/authentication/auth.guard';
 import { Roles } from '@app/common/constants/role.constants';
 import { UserTypesEnum } from '@app/common/constants/roleTypes.enum';
 import { Public } from '@app/common/decorator/public.decorator';
@@ -20,7 +20,7 @@ import { Public } from '@app/common/decorator/public.decorator';
 export class DishController {
   constructor(private readonly dishService: DishService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard)
   @Roles(UserTypesEnum.RESTAURANT_ADMIN)
   @Post()
   async create(@Body() createDishDto: CreateDishDto) {

@@ -7,9 +7,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { UserModule } from './user/user.module';
 import { RolesGuard } from '@app/common/decorator/role.guard';
-import { AuthGuard } from '../guards/auth.guard';
 import { RiderInformationModule } from './rider-information/rider-information.module';
 import { DatabaseModule } from '@app/common/database/database.module';
+import { AuthGuard } from '@app/common/authentication/auth.guard';
 
 @Module({
   imports: [
