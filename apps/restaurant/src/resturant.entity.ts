@@ -40,7 +40,7 @@ export class Restaurant extends Model<Restaurant> {
   rating: number;
 
   @Column({
-    type: DataType.DECIMAL(2, 1),
+    type: DataType.INTEGER,
     allowNull: false,
     defaultValue: 0,
   })
