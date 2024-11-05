@@ -33,7 +33,7 @@ services:
     build:
       context: .
       dockerfile: ./apps/orders/Dockerfile
-    command: yarn start:dev orders
+    command: yarn start orders
     env_file: 
       - './apps/orders/.env'    
     ports:
@@ -46,7 +46,7 @@ services:
     build:
       context: .
       dockerfile: ./apps/auth/Dockerfile
-    command: yarn start:dev auth
+    command: yarn start auth
     env_file: 
       - './apps/auth/.env'    
     ports:
@@ -64,7 +64,7 @@ services:
     build:
       context: .
       dockerfile: ./apps/restaurant/Dockerfile
-    command: yarn start:dev restaurant
+    command: yarn start restaurant
     env_file: 
       - './apps/restaurant/.env'    
     ports:
@@ -77,7 +77,7 @@ services:
     build:
       context: .
       dockerfile: ./apps/notifications/Dockerfile
-    command: yarn start:dev notifications
+    command: yarn start notifications
     ports:
       - "3006:3006"
     volumes:

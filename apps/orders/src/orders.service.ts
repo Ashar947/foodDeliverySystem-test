@@ -15,7 +15,6 @@ import { ClientKafka } from '@nestjs/microservices';
 import { OrderCreatedEvent } from './dto/event/create-order.event';
 import { ValidateDish } from './dto/event/validate-dish.event';
 import { ValidateRestaurantEvent } from './dto/event/validate-restaurant.event';
-import { Dish } from 'apps/restaurant/src/dish/entities/dish.entity';
 import * as timeFormat from 'hh-mm-ss';
 import { fn, col, literal } from 'sequelize';
 
@@ -73,7 +72,7 @@ export class OrdersService implements OnModuleInit {
       const orderId = order.id;
       for (const subOrder of subOrders) {
         // add restaurantId as well in dish validation
-        const dishValidation: Dish = await this.restaurantService
+        const dishValidation = await this.restaurantService
           .send('validate-dish', new ValidateDish(subOrder.dishId))
           .toPromise();
         console.log({ dishValidation });

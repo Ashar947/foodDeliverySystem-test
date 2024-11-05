@@ -4,11 +4,16 @@ WORKDIR /usr/src/app
 
 COPY package.json ./
 COPY yarn.lock ./
+COPY tsconfig.json ./tsconfig.json
+COPY nest-cli.json ./nest-cli.json
 
 RUN yarn
 
-COPY . .
+COPY apps/orders ./apps/orders
+COPY libs ./libs
 
-RUN yarn build
+RUN cd apps/ && yarn
 
-CMD ["yarn","dev"]
+RUN yarn build orders
+
+CMD ["node", "dist/apps/orders/main"]
