@@ -1,4 +1,4 @@
-import { Controller, Param, Patch, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import { DeliveryService } from './delivery.service';
 import { AuthGuard } from '@app/common/authentication/auth.guard';
 import { Roles } from '@app/common/constants/role.constants';
@@ -17,6 +17,22 @@ export class DeliveryController {
     // @Body() updateDeliveryDto: UpdateDeliveryDto,
     // @Request() req: UserRequest,
   ) {
-    return await this.deliveryService.completeRide(+id);
+    const { delivery } = await this.deliveryService.completeRide(+id);
+    return {
+      data: { delivery },
+      success: true,
+    };
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('deliverTime/:time')
+  async averageDeliveryTime(@Param('time') time: 'daily' | 'weekly') {
+    // @Query('time') time: 'daily' | 'weekly'
+    const { deliveries } = await this.deliveryService.averageDeliveryTime(time);
+    return {
+      data: { deliveries },
+      success: true,
+      message: 'Deliveries Average Time Calculated .',
+    };
   }
 }

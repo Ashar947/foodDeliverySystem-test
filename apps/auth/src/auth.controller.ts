@@ -29,7 +29,6 @@ export class AuthController {
   async createUserEvent(createUserDto: any) {
     console.log('CREATE USER CALLED', { createUserDto });
     this.authService.createUser(createUserDto);
-    return;
   }
 
   @Public()

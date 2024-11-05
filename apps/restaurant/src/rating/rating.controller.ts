@@ -22,7 +22,7 @@ export class RatingController {
   constructor(private readonly ratingService: RatingService) {}
 
   @UseGuards(AuthGuard)
-  @Roles(UserTypesEnum.RESTAURANT_ADMIN)
+  @Roles(UserTypesEnum.CUSTOMER)
   @Post()
   async create(
     @Body() createRatingDto: CreateRatingDto,

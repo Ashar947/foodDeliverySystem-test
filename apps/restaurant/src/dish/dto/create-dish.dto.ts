@@ -22,6 +22,10 @@ export class CreateDishDto {
   price: number;
 
   @IsNotEmpty()
+  @IsNumber()
+  preparationTime: number;
+
+  @IsNotEmpty()
   @IsString()
   availabilityStatus: DishAvailabilityStatusEnum;
 }

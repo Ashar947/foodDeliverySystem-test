@@ -16,6 +16,8 @@ import { OrderCreatedEvent } from './dto/event/create-order.event';
 import { ValidateDish } from './dto/event/validate-dish.event';
 import { ValidateRestaurantEvent } from './dto/event/validate-restaurant.event';
 import { Dish } from 'apps/restaurant/src/dish/entities/dish.entity';
+import * as timeFormat from 'hh-mm-ss';
+import { fn, col, literal } from 'sequelize';
 
 @Injectable()
 export class OrdersService implements OnModuleInit {
@@ -34,6 +36,7 @@ export class OrdersService implements OnModuleInit {
     this.restaurantService.subscribeToResponseOf('validate-restaurant');
     await this.restaurantService.connect();
   }
+
   private generateTimeFunction(totalMinutes: number): string {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
@@ -52,7 +55,7 @@ export class OrdersService implements OnModuleInit {
     user: User,
   ) {
     try {
-      // let preparationTime: number = 0;
+      let preparationTime = 0;
       // TODO : validate restaurantId
       const restaurantCheck = await this.restaurantService
         .send('validate-restaurant', new ValidateRestaurantEvent(restaurantId))
@@ -69,6 +72,7 @@ export class OrdersService implements OnModuleInit {
       let totalOrderAmount = 0.0;
       const orderId = order.id;
       for (const subOrder of subOrders) {
+        // add restaurantId as well in dish validation
         const dishValidation: Dish = await this.restaurantService
           .send('validate-dish', new ValidateDish(subOrder.dishId))
           .toPromise();
@@ -76,8 +80,8 @@ export class OrdersService implements OnModuleInit {
         if (!dishValidation) {
           throw new BadRequestException('Invalid Dish.');
         }
-        // preparationTime += dishValidation.preparationTime;
-        const totalPrice = subOrder.quantity * 10;
+        preparationTime += dishValidation.preparationTime;
+        const totalPrice = subOrder.quantity * dishValidation.price;
         await SubOrder.create({
           orderId,
           dishId: subOrder.dishId,
@@ -91,7 +95,7 @@ export class OrdersService implements OnModuleInit {
         customerId: user.id,
         riderId: 2,
         deliveryAddress,
-        // estimatedDeliveryTime :  generateTimeFunction(preparationTime)
+        estimatedDeliveryTime: timeFormat.fromS(preparationTime, 'hh:mm:ss'),
       });
       // create notification event
       order.totalOrderAmount = totalOrderAmount;
@@ -136,5 +140,22 @@ export class OrdersService implements OnModuleInit {
       message: 'Orders Fetched Successfully.',
       data: { orders },
     };
+  }
+
+  async analyzePeakOrderTime() {
+    return await Order.findAll({
+      attributes: [
+        'restaurantId',
+        [fn('HOUR', col('createdAt')), 'peakHour'],
+        [fn('COUNT', col('id')), 'orderCount'],
+      ],
+      group: ['restaurantId', 'peakHour'],
+      order: [
+        ['restaurantId', 'ASC'],
+        [literal('orderCount'), 'DESC'],
+      ],
+      limit: 1,
+      subQuery: false,
+    });
   }
 }

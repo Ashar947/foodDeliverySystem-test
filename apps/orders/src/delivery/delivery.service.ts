@@ -3,6 +3,7 @@ import { Order, OrderStatusEnum } from '../order.entity';
 import { Delivery } from './entities/delivery.entity';
 import { ClientKafka } from '@nestjs/microservices';
 import { SubOrder } from '../sub-orders/entities/sub-order.entity';
+import { Op, fn, col, literal } from 'sequelize';
 
 @Injectable()
 export class DeliveryService {
@@ -59,5 +60,33 @@ export class DeliveryService {
     this.restaurantService.emit('update-restaurant-sales', {
       id: order.restaurantId,
     });
+    await delivery.save();
+    return { delivery };
+  }
+
+  async averageDeliveryTime(time: 'daily' | 'weekly') {
+    const dateFormat = time === 'daily' ? '%Y-%m-%d' : '%Y-%u';
+    const deliveries = await Delivery.findAll({
+      attributes: [
+        [fn('DATE_FORMAT', col('realDeliveryTime'), dateFormat), 'time'],
+        [
+          fn(
+            'AVG',
+            literal(
+              'TIMESTAMPDIFF(MINUTE, `realDeliveryTime`, `realDeliveryTime`)',
+            ),
+          ),
+          'averageDeliveryTime',
+        ],
+      ],
+      where: {
+        realDeliveryTime: {
+          [Op.not]: null, // Ensures that only completed deliveries are counted
+        },
+      },
+      group: ['time'],
+      order: [[literal('time'), 'ASC']],
+    });
+    return { deliveries };
   }
 }

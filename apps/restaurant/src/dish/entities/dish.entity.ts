@@ -84,7 +84,7 @@ export class Dish extends Model<Dish> {
   @Column({
     type: DataType.INTEGER,
     defaultValue: 0,
-    allowNull: true,
+    allowNull: false,
   })
   preparationTime: number; // minutes
 

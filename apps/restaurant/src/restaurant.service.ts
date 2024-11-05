@@ -1,4 +1,9 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  OnModuleInit,
+} from '@nestjs/common';
 import { CreateRestaurantDto } from './dto/createRestaurant.dto';
 import { Restaurant } from './resturant.entity';
 import { Op } from 'sequelize';
@@ -8,11 +13,14 @@ import { UserTypesEnum } from '@app/common/constants/roleTypes.enum';
 import { ClientKafka } from '@nestjs/microservices';
 
 @Injectable()
-export class RestaurantService {
+export class RestaurantService implements OnModuleInit {
   constructor(
     @Inject('auth-service')
     private readonly authService: ClientKafka,
   ) {}
+  async onModuleInit() {
+    await this.authService.connect();
+  }
   async create({ restaurantAdmin, ...rest }: CreateRestaurantDto) {
     try {
       const checkWhere: any[] = [];
@@ -39,7 +47,7 @@ export class RestaurantService {
         rating: 0.0,
         totalOrders: 0,
       });
-      // call auth service to create user
+      // TODO Add RestaurantId
       this.authService.emit(
         'create-user',
         new CreateRestaurantAdminEvent(
@@ -70,7 +78,7 @@ export class RestaurantService {
     try {
       const dish = await Dish.findOne({ where: { id: data.dishId } });
       console.log({ dish });
-      return dish;
+      return dish['dataValues'];
     } catch {
       return null;
     }
@@ -100,5 +108,27 @@ export class RestaurantService {
       restaurant.totalOrders += 1;
       await restaurant.save();
     }
+  }
+
+  async getTopPopularDishes(id: number) {
+    console.log({ id });
+    const weight1 = 0.7; // weight for rating
+    const weight2 = 0.3; // weight for totalSold
+    const dishes = await Dish.findAll({
+      where: { restaurantId: id },
+      attributes: {
+        include: [
+          [
+            Dish.sequelize.literal(
+              `(rating * ${weight1} + totalSold * ${weight2})`,
+            ),
+            'popularityScore',
+          ],
+        ],
+      },
+      order: [[Dish.sequelize.literal('popularityScore'), 'DESC']],
+      limit: 5,
+    });
+    return { dishes };
   }
 }
